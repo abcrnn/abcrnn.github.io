@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="css/animate.css">
     <link rel="stylesheet" href="css/style.css">
     <link href="css/abcjs-midi.css" media="all" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"> </script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/tensorflow/0.13.5/tf.min.js"></script>
     <script src="/js/abcjs_midi_5.6.5-min.js" type="text/javascript"></script>
     <style>
         textarea {
@@ -51,7 +51,9 @@
     <section id="banner" class="center container">
         <h1>Welcome to abcRNN</h1>
         <p class="flow-text">Web app demo coming soon!</p>
-        <textarea name="abc" id="abc" cols="80" rows="15">X: 1
+        <button id="musicButton" class="purple btn-large waves-effect animated pulse infinite" onClick="init()">Let's Generate Music! Click Me!</button>
+        <div class="abcjs">
+            <textarea name="abc" id="abc" cols="80" rows="15">X: 1
 T: Cooley's
 M: 4/4
 L: 1/8
@@ -61,16 +63,17 @@ K: Emin
 EBBA B2 EB|B2 AB defg|afe^c dBAF|DEFD E2:|
 |:gf|eB B2 efge|eB B2 gedB|A2 FA DAFA|A2 FA defg|
 eB B2 eBgB|eB B2 defg|afe^c dBAF|DEFD E2:|
-        </textarea>
-        <hr />
-        <div id="midi"></div>
-        <div id="midi-download"></div>
-        <div id="warnings"></div>
-        <div id="paper0" class="paper"></div>
-        <div id="paper1" class="paper"></div>
-        <div id="paper2" class="paper"></div>
-        <div id="paper3" class="paper"></div>
-        <div id="selection"></div>
+            </textarea>
+            <hr />
+            <div id="midi"></div>
+            <div id="midi-download"></div>
+            <div id="warnings"></div>
+            <div id="paper0" class="paper"></div>
+            <div id="paper1" class="paper"></div>
+            <div id="paper2" class="paper"></div>
+            <div id="paper3" class="paper"></div>
+            <div id="selection"></div>
+        </div>
     </section>
     <section class="row center-align container">
         <br><br>
@@ -109,6 +112,106 @@ eB B2 eBgB|eB B2 defg|afe^c dBAF|DEFD E2:|
     <script src="js/materialize.min.js"></script>
     <script src="js/app.js"></script>
     <script type="text/javascript">
+        async function loadDict() {
+            await $.getJSON("test_model/model_dictionary.json", function(json) {
+                console.log(json); // this will show the info it in firebug console
+                obj = json;
+            });
+        }
+/*
+        async function init() {
+            var seq_length = 50;
+            var starting = "[A2F,2]dc [B2D2]A2 | [G2E,2]gf";
+            console.log('Start loading dicionary')
+            await loadDict();
+            console.log('Finish loading dicionary')
+            console.log('Start loading model') 
+            model = await tf.loadModel('test_model/model.json')
+            console.log('Finish loading model') 
+            var sequence_index = []
+            console.log(obj)
+            for (var i = 0; i < starting.length; i++) {
+                console.log(starting.charAt(i));
+                sequence_index.push(obj.char2idx[starting.charAt(i)])
+            }
+            console.log(sequence_index)
+            var seq_len = starting.length
+            var n_vocab = Object.keys(obj.idx2char).length;
+            var prev = undefined
+            for (var i = 0; i < seq_length - seq_len; i++) {
+                var batch = sequence_index.slice(Math.max(sequence_index.length - seq_len, 0))
+                var predicted_probs = model.predictOnBatch(tf.tensor([batch]))
+
+                predicted_probs.print()
+                predicted_probs = tf.slice(predicted_probs, [0, 29, 0], [1, 1, 67])
+                predicted_probs.print()
+                sample = tf.argMax(predicted_probs.flatten())
+                sample.print()
+                var char_note = obj.idx2char[sample.get()]
+                console.log(char_note)
+                if (char_note === '\n' && char_note === prev) {
+                    continue;
+                } 
+                sequence_index.push(sample)
+                prev = char_note
+            }
+
+            console.log(sequence_index)
+            console.log(sequence_index.length)
+            //tf.slice(predicted_probs, [0, 29, 0], [1, 1, 67]).print()
+        }
+        */
+
+        async function init() {
+            var seq_length = 300;
+            var starting = "[A2F,2]dc [B2D2]A2 | [G2E,2]gf";
+            console.log('Start loading dicionary')
+            await loadDict();
+            console.log('Finish loading dicionary')
+            console.log('Start loading model') 
+            model = await tf.loadModel('test_model/model.json')
+            console.log('Finish loading model') 
+            var sequence_index = []
+            console.log(obj)
+            for (var i = 0; i < starting.length; i++) {
+                console.log(starting.charAt(i));
+                sequence_index.push(obj.char2idx[starting.charAt(i)])
+            }
+            console.log(sequence_index)
+            var seq_len = starting.length
+            var n_vocab = Object.keys(obj.idx2char).length;
+            var prev = undefined
+            for (var i = 0; i < seq_length - seq_len; i++) {
+                var batch = sequence_index.slice(Math.max(sequence_index.length - seq_len, 0))
+                var predicted_probs = model.predictOnBatch(tf.tensor([batch]))
+
+                predicted_probs.print()
+                predicted_probs = tf.slice(predicted_probs, [0, 29, 0], [1, 1, 67])
+                predicted_probs.print()
+                sample = tf.argMax(predicted_probs.flatten())
+                sample.print()
+                var char_note = obj.idx2char[sample.get()]
+                console.log(char_note)
+                if (char_note === '\n' && char_note === prev) {
+                    continue;
+                } 
+                sequence_index.push(sample.get())
+                prev = char_note
+            }
+            var str_seq = "";
+            for (var i = 0; i < sequence_index.length; i++) {
+                str_seq += obj.idx2char[sequence_index[i]];
+            }           
+            console.log(sequence_index)
+            console.log(sequence_index.length)
+            console.log(str_seq)
+            $('#musicButton').css('display', 'none');
+            document.getElementById("abc").value = str_seq;
+            initEditor();
+            $('.abcjs').css('display', 'block');
+            //tf.slice(predicted_probs, [0, 29, 0], [1, 1, 67]).print()
+        }
+        
         function selectionCallback(abcelem) {
             var note = {};
             for (var key in abcelem) {
@@ -119,6 +222,7 @@ eB B2 eBgB|eB B2 defg|afe^c dBAF|DEFD E2:|
             var el = document.getElementById("selection");
             el.innerHTML = "<b>selectionCallback parameter:</b><br>" + JSON.stringify(note);
         }
+
         function initEditor() {
             new ABCJS.Editor("abc", { paper_id: "paper0",
                 generate_midi: true,
@@ -132,7 +236,13 @@ eB B2 eBgB|eB B2 defg|afe^c dBAF|DEFD E2:|
                 }
             });
         }
+
         window.addEventListener("load", initEditor, false);
+        var model;
+        var obj = undefined;
+        window.onload = function() {
+            //init(); 
+        }
     </script>
 </body>
 
