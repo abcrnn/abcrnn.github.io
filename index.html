@@ -159,26 +159,26 @@ eB B2 eBgB|eB B2 defg|afe^c dBAF|DEFD E2:|
                 var batch = sequence_index.slice(Math.max(sequence_index.length - seq_len, 0))
                 var predicted_probs = model.predictOnBatch(tf.tensor([batch]))
 
-                predicted_probs.print()
+//                 predicted_probs.print()
                 predicted_probs = tf.slice(predicted_probs, [0, 29, 0], [1, 1, 67])
-                predicted_probs.print()
+//                 predicted_probs.print()
                 sample = tf.argMax(predicted_probs.flatten())
-                sample.print()
+//                 sample.print()
                 var char_note = obj.idx2char[sample.get()]
-                console.log(char_note)
+//                 console.log(char_note)
                 if (char_note === '\n' && char_note === prev) {
                     continue;
                 } 
                 sequence_index.push(sample.get())
                 prev = char_note
             }
-            var str_seq = "T: abcRNN\n";
+            var str_seq = "T: abcRNN\nM: 4/4\n K:Cmin";
             for (var i = 0; i < sequence_index.length; i++) {
                 str_seq += obj.idx2char[sequence_index[i]];
             }           
-            console.log(sequence_index)
-            console.log(sequence_index.length)
-            console.log(str_seq)
+//             console.log(sequence_index)
+//             console.log(sequence_index.length)
+//             console.log(str_seq)
             $('.flow-text').css('display', 'none');
             $('.lds-ring').css('display', 'none');
             document.getElementById("abc").value = str_seq;
