@@ -40,9 +40,9 @@
                 </li>
             </ul>
             <ul id="slide-out" class="side-nav">
-                <li><a href="./index" class="waves-effect">Home</a></li>
-                <li><a href="./about" class="waves-effect">About</a></li>
-                <li><a href="./model-eval">Model Evaluation</a></li>
+                <li><a href="./#" class="waves-effect">Home</a></li>
+                <li><a href="./about.html" class="waves-effect">About</a></li>
+                <li><a href="./model-eval.html">Model Evaluation</a></li>
                 <li>
                     <a href="https://github.com/abcrnn/abcrnn.github.io" class="waves-effect waves-light" target="_blank"><i class="icon ion-social-github left"></i>Github</a>
                 </li>
@@ -56,7 +56,7 @@
         <button id="musicButton" class="purple btn-large waves-effect animated pulse infinite" style="display: none">Let's Generate Music! Click Me!</button>
         <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
         <div class="abcjs">
-            <textarea name="abc" id="abc" cols="80" rows="15">X: 1
+            <textarea name="abc" id="abc" cols="80" rows="11">X: 1
 T: Cooley's
 M: 4/4
 L: 1/8
@@ -114,109 +114,14 @@ eB B2 eBgB|eB B2 defg|afe^c dBAF|DEFD E2:|
     <script src="js/jquery.min.js"></script>
     <script src="js/materialize.min.js"></script>
     <script src="js/app.js"></script>
+    <script src="js/music.js"></script>
     <script type="text/javascript">
-        async function loadDict() {
-            await $.getJSON("test_model/model_dictionary.json", function(json) {
-                console.log(json); // this will show the info it in firebug console
-                obj = json;
-            });
-        }
-
-        async function init() {
-            document.getElementById('status').innerHTML = 'Loading model ...'
-            console.log('Start loading model') 
-            model = await tf.loadModel('test_model/model.json')
-            console.log('Finish loading model') 
-            document.getElementById('status').innerHTML = 'Model loaded!'
-            $('#musicButton').css('display', 'inline-block');
-        }
-        
-        $('#musicButton').on('click', async function(){
-            $('#musicButton').css('display', 'none');
-            $('.lds-ring').css('display', 'inline-block');
-            console.log('Start loading dictionary')
-            await loadDict();
-            console.log('Finish loading dictionary')
-            generate();
-        });
-
-        function generate() {
-            var seq_length = 200;
-            //var starting = "[A2F,2]dc [B2D2]A2 | [G2E,2]gf";
-            //var starting = "[B,4d4] [c4A,4F,4] d4 | [dA,]^"
-            var starting = "[d3F,3]G,3E,3 [d3F,3]D,3 |E,3 "
-            var sequence_index = []
-            console.log(obj)
-            for (var i = 0; i < starting.length; i++) {
-                console.log(starting.charAt(i));
-                sequence_index.push(obj.char2idx[starting.charAt(i)])
-            }
-            console.log(sequence_index)
-            var seq_len = starting.length
-            var n_vocab = Object.keys(obj.idx2char).length;
-            var prev = undefined
-            for (var i = 0; i < seq_length - seq_len; i++) {
-                var batch = sequence_index.slice(Math.max(sequence_index.length - seq_len, 0))
-                var predicted_probs = model.predictOnBatch(tf.tensor([batch]))
-
-                predicted_probs.print()
-                predicted_probs = tf.slice(predicted_probs, [0, 29, 0], [1, 1, 67])
-                predicted_probs.print()
-                sample = tf.argMax(predicted_probs.flatten())
-                sample.print()
-                var char_note = obj.idx2char[sample.get()]
-                console.log(char_note)
-                if (char_note === '\n' && char_note === prev) {
-                    continue;
-                } 
-                sequence_index.push(sample.get())
-                prev = char_note
-            }
-            var str_seq = "T: abcRNN\n";
-            for (var i = 0; i < sequence_index.length; i++) {
-                str_seq += obj.idx2char[sequence_index[i]];
-            }           
-            console.log(sequence_index)
-            console.log(sequence_index.length)
-            console.log(str_seq)
-            $('.flow-text').css('display', 'none');
-            $('.lds-ring').css('display', 'none');
-            document.getElementById("abc").value = str_seq;
-            initEditor();
-            $('.abcjs').css('display', 'block');
-        }
-
-        function selectionCallback(abcelem) {
-            var note = {};
-            for (var key in abcelem) {
-                if (abcelem.hasOwnProperty(key) && key !== "abselem")
-                    note[key] = abcelem[key];
-            }
-            console.log(abcelem);
-            var el = document.getElementById("selection");
-            el.innerHTML = "<b>selectionCallback parameter:</b><br>" + JSON.stringify(note);
-        }
-
-        function initEditor() {
-            new ABCJS.Editor("abc", { paper_id: "paper0",
-                generate_midi: true,
-                midi_id:"midi",
-                midi_download_id: "midi-download",
-                generate_warnings: true,
-                warnings_id:"warnings",
-                abcjsParams: {
-                    generateDownload: true,
-                    //clickListener: selectionCallback
-                }
-            });
-        }
-
         window.addEventListener("load", initEditor, false);
         var model;
         var obj = undefined;
-        window.onload = function() {
-            init(); 
-
+        var starting_seed = undefined;
+        window.onload = async function() {
+            init();
         }
     </script>
 </body>
