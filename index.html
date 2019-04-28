@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link href="css/abcjs-midi.css" media="all" rel="stylesheet" type="text/css" />
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/tensorflow/0.13.5/tf.min.js"></script>
-    <script src="/js/abcjs_midi_5.6.5-min.js" type="text/javascript"></script>
+    <script src="./js/abcjs_midi_5.6.5-min.js" type="text/javascript"></script>
     <style>
         textarea {
             width: unset;
@@ -172,7 +172,7 @@ eB B2 eBgB|eB B2 defg|afe^c dBAF|DEFD E2:|
                 sequence_index.push(sample.get())
                 prev = char_note
             }
-            var str_seq = "T: abcRNN\nM: 4/4\n K:Cmin";
+            var str_seq = "T: abcRNN\nM: 4/4\n K:Cmin\n";//starting sequence(header)
             for (var i = 0; i < sequence_index.length; i++) {
                 str_seq += obj.idx2char[sequence_index[i]];
             }           
