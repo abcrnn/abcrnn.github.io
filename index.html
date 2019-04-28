@@ -52,7 +52,8 @@
     <section id="banner" class="center container">
         <img src="img/abcRnn_logo.png" class="center-img"/>
         <p class="flow-text">Disclaimer: It might take a while for the music to generate. Please be patient! </p>
-        <button id="musicButton" class="purple btn-large waves-effect animated pulse infinite" onClick="init()">Let's Generate Music! Click Me!</button>
+        <p id = "status"></p>
+        <button id="musicButton" class="purple btn-large waves-effect animated pulse infinite" style="display: none">Let's Generate Music! Click Me!</button>
         <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
         <div class="abcjs">
             <textarea name="abc" id="abc" cols="80" rows="15">X: 1
@@ -122,18 +123,28 @@ eB B2 eBgB|eB B2 defg|afe^c dBAF|DEFD E2:|
         }
 
         async function init() {
-            $('#musicButton').css('display', 'none');
-            $('.lds-ring').css('display', 'inline-block');
-            var seq_length = 300;
-            //var starting = "[A2F,2]dc [B2D2]A2 | [G2E,2]gf";
-            //var starting = "[B,4d4] [c4A,4F,4] d4 | [dA,]^"
-            var starting = "[d3F,3]G,3E,3 [d3F,3]D,3 |E,3 "
-            console.log('Start loading dicionary')
-            await loadDict();
-            console.log('Finish loading dicionary')
+            document.getElementById('status').innerHTML = 'Loading model ...'
             console.log('Start loading model') 
             model = await tf.loadModel('test_model/model.json')
             console.log('Finish loading model') 
+            document.getElementById('status').innerHTML = 'Model loaded!'
+            $('#musicButton').css('display', 'inline-block');
+        }
+        
+        $('#musicButton').on('click', async function(){
+            $('#musicButton').css('display', 'none');
+            $('.lds-ring').css('display', 'inline-block');
+            console.log('Start loading dictionary')
+            await loadDict();
+            console.log('Finish loading dictionary')
+            generate();
+        });
+
+        function generate() {
+            var seq_length = 200;
+            //var starting = "[A2F,2]dc [B2D2]A2 | [G2E,2]gf";
+            //var starting = "[B,4d4] [c4A,4F,4] d4 | [dA,]^"
+            var starting = "[d3F,3]G,3E,3 [d3F,3]D,3 |E,3 "
             var sequence_index = []
             console.log(obj)
             for (var i = 0; i < starting.length; i++) {
@@ -174,7 +185,7 @@ eB B2 eBgB|eB B2 defg|afe^c dBAF|DEFD E2:|
             initEditor();
             $('.abcjs').css('display', 'block');
         }
-        
+
         function selectionCallback(abcelem) {
             var note = {};
             for (var key in abcelem) {
@@ -204,7 +215,8 @@ eB B2 eBgB|eB B2 defg|afe^c dBAF|DEFD E2:|
         var model;
         var obj = undefined;
         window.onload = function() {
-            //init(); 
+            init(); 
+
         }
     </script>
 </body>
