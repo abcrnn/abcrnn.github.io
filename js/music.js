@@ -1,30 +1,34 @@
-async function loadDict() {
-    await $.getJSON("https://abcrnn.github.io/music_generation.python/music_model/classical_music_model/model_dictionary.json", function(json) {
+async function loadDict(dict) {
+    await $.getJSON("https://abcrnn.github.io/music_generation.python/music_model/" + modelName + "_music_model/model_dictionary.json", function(json) {
         console.log(json); // this will show the info it in firebug console
         obj = json;
     });
 }
 
-async function init() {
-    document.getElementById('status').innerHTML = 'Loading model ...'
+async function init(model_inp, id) {
+    $('#musicButton').css('display', 'none');
+    modelName = id;
+    $('.lds-ellipsis').css('display', 'inline-block');    
+    document.getElementById('musicButton').innerHTML = 'Let\'s Generate ' + id + ' Music! Click Me!'
     console.log('Start loading model') 
-    model = await tf.loadModel('https://abcrnn.github.io/music_generation.python/music_model/classical_music_model/model.json')
+    model = await tf.loadModel(model_inp    )
     console.log('Finish loading model') 
-    document.getElementById('status').innerHTML = 'Model loaded!'
+    $('.lds-ellipsis').css('display', 'none'); 
     $('#musicButton').css('display', 'inline-block');
 }
 
 $('#musicButton').on('click', async function(){
-    $('#musicButton').css('display', 'none');
-    $('.lds-ring').css('display', 'inline-block');
+    $('.lds-roller').css('display', 'inline-block'); 
+    $('#musicButton').removeClass('pulse');
     console.log('Start loading dictionary')
     await loadDict();
     console.log('Finish loading dictionary')
+    console.log(modelName)
     generate();
 });
 
 async function generate() {
-    var seq_length = 500;
+    var seq_length = 300;
     await readFile(30);
     //var starting = "[A2F,2]dc [B2D2]A2 | [G2E,2]gf";
     //var starting = "[B,4d4] [c4A,4F,4] d4 | [dA,]^"
@@ -75,8 +79,9 @@ async function generate() {
     console.log(sequence_index)
     console.log(sequence_index.length)
     console.log(str_seq)
-    $('.flow-text').css('display', 'none');
-    $('.lds-ring').css('display', 'none');
+//    $('.flow-text').css('display', 'none');
+//    $('.lds-ring').css('display', 'none');
+    $('.lds-roller').css('display', 'none'); 
     document.getElementById("abc").value = str_seq;
     initEditor();
     $('.abcjs').css('display', 'block');
@@ -112,7 +117,7 @@ function getRandomInt(max) {
 }
 
 async function readFile(seq_len) {
-    await jQuery.get("https://abcrnn.github.io/music_generation.python/music_model/classical_music_model/starting_seed_dbase.txt", function(textString) {
+    await jQuery.get("https://abcrnn.github.io/music_generation.python/music_model/" + modelName + "_music_model/starting_seed_dbase.txt", function(textString) {
         //do what you want with the textString
         var start_idx = getRandomInt(textString.length - seq_len)
         starting_seed = textString.slice(start_idx, start_idx + seq_len)
