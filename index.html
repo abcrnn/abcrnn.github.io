@@ -10,7 +10,8 @@
     <link rel="stylesheet" href="css/style.css">
     <link href="css/abcjs-midi.css" media="all" rel="stylesheet" type="text/css" />
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/tensorflow/0.13.5/tf.min.js"></script>
-    <script src="/js/abcjs_midi_5.6.5-min.js" type="text/javascript"></script>
+    <script src="./js/abcjs_midi_5.6.5-min.js" type="text/javascript"></script>
+    <script src="./js/chance.min.js" type="text/javascript"></script>
     <style>
         textarea {
             width: unset;
@@ -116,7 +117,7 @@ eB B2 eBgB|eB B2 defg|afe^c dBAF|DEFD E2:|
     <script src="js/app.js"></script>
     <script type="text/javascript">
         async function loadDict() {
-            await $.getJSON("test_model/model_dictionary.json", function(json) {
+            await $.getJSON("https://abcrnn.github.io/music_generation.python/music_model/classical_music_model/model_dictionary.json", function(json) {
                 console.log(json); // this will show the info it in firebug console
                 obj = json;
             });
@@ -125,7 +126,7 @@ eB B2 eBgB|eB B2 defg|afe^c dBAF|DEFD E2:|
         async function init() {
             document.getElementById('status').innerHTML = 'Loading model ...'
             console.log('Start loading model') 
-            model = await tf.loadModel('test_model/model.json')
+            model = await tf.loadModel('https://abcrnn.github.io/music_generation.python/music_model/classical_music_model/model.json')
             console.log('Finish loading model') 
             document.getElementById('status').innerHTML = 'Model loaded!'
             $('#musicButton').css('display', 'inline-block');
@@ -137,42 +138,73 @@ eB B2 eBgB|eB B2 defg|afe^c dBAF|DEFD E2:|
             console.log('Start loading dictionary')
             await loadDict();
             console.log('Finish loading dictionary')
-            generate();
+            generate(200, 'argmax');//does not use argmax
         });
 
-        function generate() {
-            var seq_length = 200;
+        /**
+         * Python np.range equivalent when step=1 
+         */
+        function range(range_val){
+            return Array(range_val).fill(1).map((x, y) => x + y)
+        }
+
+        /**
+         * Python np.random.choice with weight probability equivalent
+         */
+        function randomChoice(range_vals, pred_prob_arr){
+            var chosen = chance.weighted(range_vals, pred_prob_arr);
+            return chosen;
+        }
+
+        /**
+         * sampling_type: 'argmax', 'multinomial'
+         */
+        function generate(seq_length, sampling_type) {
             //var starting = "[A2F,2]dc [B2D2]A2 | [G2E,2]gf";
             //var starting = "[B,4d4] [c4A,4F,4] d4 | [dA,]^"
             var starting = "[d3F,3]G,3E,3 [d3F,3]D,3 |E,3 "
             var sequence_index = []
             console.log(obj)
             for (var i = 0; i < starting.length; i++) {
-                console.log(starting.charAt(i));
+                // console.log(starting.charAt(i));
                 sequence_index.push(obj.char2idx[starting.charAt(i)])
             }
             console.log(sequence_index)
             var seq_len = starting.length
             var n_vocab = Object.keys(obj.idx2char).length;
-            var prev = undefined
+            var prev = undefined;
+            var sample; 
             for (var i = 0; i < seq_length - seq_len; i++) {
                 var batch = sequence_index.slice(Math.max(sequence_index.length - seq_len, 0))
                 var predicted_probs = model.predictOnBatch(tf.tensor([batch]))
 
-                predicted_probs.print()
-                predicted_probs = tf.slice(predicted_probs, [0, 29, 0], [1, 1, 67])
-                predicted_probs.print()
-                sample = tf.argMax(predicted_probs.flatten())
-                sample.print()
-                var char_note = obj.idx2char[sample.get()]
-                console.log(char_note)
+                predicted_probs = tf.slice(predicted_probs, [0, 29, 0], [1, 1, n_vocab])
+                if (sampling_type == 'argmax') sample = tf.argMax(predicted_probs.flatten()).get();
+                else if (sampling_type == 'multinomial'){
+                    var pred_probs_arr = Array.from(predicted_probs.dataSync());
+                    sample = randomChoice(range(n_vocab), pred_probs_arr);
+                }
+
+
+
+                var char_note = obj.idx2char[sample]
+
+
                 if (char_note === '\n' && char_note === prev) {
                     continue;
                 } 
-                sequence_index.push(sample.get())
+                sequence_index.push(sample)
                 prev = char_note
             }
-            var str_seq = "T: abcRNN\n";
+            var str_seq = "";
+            var starting_seq = (function () {/*
+T: abcRNN generated sequence
+M: 4/4
+K: Cmin
+*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1]; //python equivalent on ''' ''' block string
+
+            str_seq = starting_seq;
+
             for (var i = 0; i < sequence_index.length; i++) {
                 str_seq += obj.idx2char[sequence_index[i]];
             }           
