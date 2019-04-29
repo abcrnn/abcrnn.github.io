@@ -5,6 +5,23 @@ async function loadDict() {
     });
 }
 
+
+
+/**
+ * Python np.range equivalent when step=1 
+ */
+function range(range_val){
+    return Array(range_val).fill(1).map((x, y) => x + y)
+}
+/**
+ * Python np.random.choice with weight probability equivalent
+ */
+function randomChoice(range_vals, pred_prob_arr){
+    var chosen = chance.weighted(range_vals, pred_prob_arr);
+    return chosen;
+}
+
+
 async function init() {
     document.getElementById('status').innerHTML = 'Loading model ...'
     console.log('Start loading model') 
@@ -20,14 +37,12 @@ $('#musicButton').on('click', async function(){
     console.log('Start loading dictionary')
     await loadDict();
     console.log('Finish loading dictionary')
-    generate();
+    generate(100);
 });
 
-async function generate() {
-    var seq_length = 500;
+async function generate(seq_length) {
     await readFile(30);
-    //var starting = "[A2F,2]dc [B2D2]A2 | [G2E,2]gf";
-    //var starting = "[B,4d4] [c4A,4F,4] d4 | [dA,]^"
+
     var starting = starting_seed
     console.log(starting)
     var sequence_index = []
@@ -44,27 +59,21 @@ async function generate() {
         var batch = sequence_index.slice(Math.max(sequence_index.length - seq_len, 0))
         var predicted_probs = model.predictOnBatch(tf.tensor([batch]))
 
-        predicted_probs.print()
-        predicted_probs = tf.slice(predicted_probs, [0, 29, 0], [1, 1, model.internalOutputShapes[0][2]])
-        predicted_probs.print()
-        sample = tf.argMax(predicted_probs.flatten())
+        predicted_probs = tf.slice(predicted_probs, [0, 29, 0], [1, 1, n_vocab])
+        // sample = tf.argMax(predicted_probs.flatten()).get();
+        var pred_probs_arr = Array.from(predicted_probs.squeeze().dataSync());
+        sample  = tf.multinomial(predicted_probs.squeeze(), 1, 20, true).dataSync()[0];
+
         var {values, indices} = tf.topk(predicted_probs.flatten(), 3)
-        values.print()
-        indices.print()
-        //predicted_probs.flatten().max().print();
-        //predicted_probs.flatten().sum().print();
-        sample.print()
-        var char_note = obj.idx2char[sample.get()]
-        console.log(char_note)
+        var char_note = obj.idx2char[sample]
+
         if (char_note === '\n' && char_note === prev) {
             //continue;
             var {values, indices} = tf.topk(predicted_probs.flatten(), 2)
-            console.log(indices.flatten().dataSync()[1])
             char_note = obj.idx2char[indices.flatten().dataSync()[1]]
-            console.log(char_note)
             sequence_index.push(indices.flatten().dataSync()[1])
         } else {
-            sequence_index.push(sample.get())
+            sequence_index.push(sample)
         }
         prev = char_note
     }
