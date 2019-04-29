@@ -1,5 +1,5 @@
 async function loadDict() {
-    await $.getJSON("test_model/model_dictionary.json", function(json) {
+    await $.getJSON("https://abcrnn.github.io/music_generation.python/music_model/classical_music_model/model_dictionary.json", function(json) {
         console.log(json); // this will show the info it in firebug console
         obj = json;
     });
@@ -8,7 +8,7 @@ async function loadDict() {
 async function init() {
     document.getElementById('status').innerHTML = 'Loading model ...'
     console.log('Start loading model') 
-    model = await tf.loadModel('test_model/model.json')
+    model = await tf.loadModel('https://abcrnn.github.io/music_generation.python/music_model/classical_music_model/model.json')
     console.log('Finish loading model') 
     document.getElementById('status').innerHTML = 'Model loaded!'
     $('#musicButton').css('display', 'inline-block');
@@ -24,7 +24,7 @@ $('#musicButton').on('click', async function(){
 });
 
 async function generate() {
-    var seq_length = 200;
+    var seq_length = 500;
     await readFile(30);
     //var starting = "[A2F,2]dc [B2D2]A2 | [G2E,2]gf";
     //var starting = "[B,4d4] [c4A,4F,4] d4 | [dA,]^"
@@ -45,7 +45,7 @@ async function generate() {
         var predicted_probs = model.predictOnBatch(tf.tensor([batch]))
 
         predicted_probs.print()
-        predicted_probs = tf.slice(predicted_probs, [0, 29, 0], [1, 1, 67])
+        predicted_probs = tf.slice(predicted_probs, [0, 29, 0], [1, 1, model.internalOutputShapes[0][2]])
         predicted_probs.print()
         sample = tf.argMax(predicted_probs.flatten())
         var {values, indices} = tf.topk(predicted_probs.flatten(), 3)
@@ -112,7 +112,7 @@ function getRandomInt(max) {
 }
 
 async function readFile(seq_len) {
-    await jQuery.get("test_model/starting_dset.txt", function(textString) {
+    await jQuery.get("https://abcrnn.github.io/music_generation.python/music_model/classical_music_model/starting_seed_dbase.txt", function(textString) {
         //do what you want with the textString
         var start_idx = getRandomInt(textString.length - seq_len)
         starting_seed = textString.slice(start_idx, start_idx + seq_len)
