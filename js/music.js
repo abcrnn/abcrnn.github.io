@@ -12,6 +12,8 @@ async function init(model_inp, id) {
     console.log('Start loading model') 
     model = await tf.loadModel(model_inp    )
     console.log('Finish loading model') 
+    console.log(model.summary());
+    
     $('.lds-ellipsis').css('display', 'none'); 
     $('#musicButton').css('display', 'inline-block');
 }
@@ -58,6 +60,7 @@ async function generate(seq_length) {
         values.print()
         indices.print()
         var char_note = obj.idx2char[sample]
+        if (char_note == undefined) continue;
         if (char_note === '\n' && char_note === prev) {
             //continue;
             var {values, indices} = tf.topk(predicted_probs.flatten(), 2)
@@ -68,7 +71,7 @@ async function generate(seq_length) {
         }
         prev = char_note
     }
-    var str_seq = "T: abcRNN\nM: 4/4\nK:Cmin\n";
+    var str_seq = "X:1    %%Index\nT: abcRNN   %%Edit title here\nM: 4/4  %%Meter\nL: 2/8 %%Note length\nQ: 120 %%tempo\nK:Cmin %%Key Signature\n"
     for (var i = 0; i < sequence_index.length; i++) {
         str_seq += obj.idx2char[sequence_index[i]];
     }           
