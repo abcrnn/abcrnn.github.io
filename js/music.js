@@ -65,7 +65,7 @@ async function generate(seq_length) {
         }
         prev = char_note
     }
-    var str_seq = "X:1    %%Index\nT: abcRNN   %%Edit title here\nM: 4/4  %%Meter\nL: 2/8 %%Note length\nQ: 120 %%tempo\nK:Cmin %%Key Signature"
+    var str_seq = "X:1    %%Index\nT: abcRNN   %%Edit title here\nM: 4/4  %%Meter\nL: 2/8 %%Note length\nQ: 120 %%tempo\nK:Cmin %%Key Signature\n"
     for (var i = 0; i < sequence_index.length; i++) {
         str_seq += obj.idx2char[sequence_index[i]];
     }           
