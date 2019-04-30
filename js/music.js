@@ -50,8 +50,13 @@ async function generate(seq_length) {
 
         predicted_probs = tf.slice(predicted_probs, [0, window_size-1, 0], [1, 1, n_vocab]);//here 29: window size
         // sample = tf.argMax(predicted_probs.flatten()).get()//if chosen max prob notes
+        console.log(tf.multinomial(tf.log(predicted_probs).squeeze(), 1).dataSync())
         sample  = tf.multinomial(tf.log(predicted_probs).squeeze(), 1).dataSync()[0];//make log prob: see api
+        console.log(sample)
+        console.log(tf.multinomial(tf.log(predicted_probs).squeeze(), 1).dataSync()[0])
         var {values, indices} = tf.topk(predicted_probs.flatten(), 3)
+        values.print()
+        indices.print()
         var char_note = obj.idx2char[sample]
         if (char_note === '\n' && char_note === prev) {
             //continue;

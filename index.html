@@ -1,129 +1,118 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <title>abcRNN</title>
-    <link rel="stylesheet" href="css/font-awesome.min.css">
-    <link rel="stylesheet" href="css/ionicons.min.css">
-    <link rel="stylesheet" href="css/materialize.min.css">
-    <link rel="stylesheet" href="css/animate.css">
-    <link rel="stylesheet" href="css/style.css">
-    <link href="css/abcjs-midi.css" media="all" rel="stylesheet" type="text/css" />
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/tensorflow/0.13.5/tf.min.js"></script>
-    <script src="./js/abcjs_midi_5.6.5-min.js" type="text/javascript"></script>
-    <style>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0"/>
+  <title>abcRNN</title>
+
+  <!-- CSS  -->
+  <link rel="stylesheet" href="css/font-awesome.min.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+  <link href="css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+  <link href="css/abcjs-midi.css" media="all" rel="stylesheet" type="text/css" />
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/tensorflow/0.13.5/tf.min.js"></script>
+  <script src="./js/abcjs_midi_5.6.5-min.js" type="text/javascript"></script>
+  <style>
+      @media print {
+          h1, p, textarea, #selection, #midi, #midi-download, hr {
+              display: none;
+          }
+          .paper {
+              position: absolute;
+          }
+      }
+
+        #score-canvas {
+          border: 2px solid #d6b88c;
+          border-radius: 4px;
+        }
+        #score-canvas svg {
+          background-color: #F3ECe2;
+        }
+
         textarea {
-            width: unset;
-            height: unset;
+          width: 60%;
+          font-size: 18px;
+          height: 300px;
+          overflow: hidden;
+          border-radius: 7px;
+          padding: 8px;
+          font-family: "Lucida Console", Monaco, monospace;
         }
-        @media print {
-            h1, p, textarea, #selection, #midi, #midi-download, hr {
-                display: none;
-            }
-            .paper {
-                position: absolute;
-            }
-        }
-    </style>
+  </style>
 </head>
+<body>
+  <nav class="base-color" role="navigation">
+      <ul class="right hide-on-med-and-down">
+        <li><a href="/about.html">About</a></li>
+      </ul>
 
-<body class="blue-grey lighten-5">
-    <nav class="teal">
-        <div class="nav-wrapper container">
-            <a href="#" data-activates="slide-out" class="button-collapse"><i class="icon ion-navicon"></i></a>
-            <ul class="right hide-on-med-and-down">
-                <li><a href="#" class="waves-effect">Home</a></li>
-                <li><a href="./about.html" class="waves-effect">About</a></li>
-                <li><a href="./model-eval.html">Model Evaluation</a></li>
-                <li>
-                    <a href="https://github.com/abcrnn/abcrnn.github.io" class="waves-effect waves-light" target="_blank"><i class="icon ion-social-github left"></i>Github</a>
-                </li>
-            </ul>
-            <ul id="slide-out" class="side-nav">
-                <li><a href="./#" class="waves-effect">Home</a></li>
-                <li><a href="./about.html" class="waves-effect">About</a></li>
-                <li><a href="./model-eval.html">Model Evaluation</a></li>
-                <li>
-                    <a href="https://github.com/abcrnn/abcrnn.github.io" class="waves-effect waves-light" target="_blank"><i class="icon ion-social-github left"></i>Github</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
-    <section id="banner" class="center container">
-        <img src="img/abcRnn_logo.png" class="center-img"/>
-        <p class="flow-text">Disclaimer: It might take a while for the music to generate. Please be patient! </p>
-        <p id = "status"></p>
-        <button id="musicButton" class="purple btn-large waves-effect animated pulse infinite" style="display: none">Let's Generate Music! Click Me!</button>
-        <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
-        <div class="abcjs">
-            <textarea name="abc" id="abc" cols="80" rows="11">X: 1
-T: Cooley's
-M: 4/4
-L: 1/8
-R: reel
-K: Emin
-|:D2|EB{c}BA B2 EB|~B2 AB dBAG|FDAD BDAD|FDAD dAFD|
-EBBA B2 EB|B2 AB defg|afe^c dBAF|DEFD E2:|
-|:gf|eB B2 efge|eB B2 gedB|A2 FA DAFA|A2 FA defg|
-eB B2 eBgB|eB B2 defg|afe^c dBAF|DEFD E2:|
-            </textarea>
-            <hr />
-            <div id="midi"></div>
-            <div id="midi-download"></div>
-            <div id="warnings"></div>
-            <div id="paper0" class="paper"></div>
-            <div id="paper1" class="paper"></div>
-            <div id="paper2" class="paper"></div>
-            <div id="paper3" class="paper"></div>
-            <div id="selection"></div>
-        </div>
-    </section>
-    <section class="row center-align container">
-        <br><br>
-        <h4>About</h4>
-        <div class="col s12 m6 l4">
-            <i class="icon ion-ios-list-outline x5"></i>
-            <h5>Problem</h5>
-            <p>New ideas are hard to come by. Musicians occasionally have hard to generating new music. Most musicians need inspiration before composing their own music.</p>
-        </div>
-        <div class="col s12 m6 l4">
-        </div>
-        <div class="col s12 m6 l4">
-            <i class="icon ion-ios-list-outline x5"></i>
-            <h5>Goal</h5>
-            <p>The goal of this app is to help artists to create new music on a specific genre.</p>
-        </div>
-    </section>
+      <ul id="nav-mobile" class="sidenav">
+        <li><a href="/about.html">About</a></li>
+      </ul>
+      <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+    </div>
+  </nav>
+  <div class="section no-pad-bot" id="index-banner">
+    <div class="container">
+      <div class="center" style="font-family: 'Lato', sans-serif;">
+          <span class="header" style="color: white">abc</span>
+          <span class="header" style="color: #a1ca53">RNN</span>
+      </div>
+      <div class="row center">
+        <h5 class="col s12 light white-text">Choose a musical model:</h5>
+      </div>
+      <div class="row center">
+        <button id="classical" onclick="init('https://abcrnn.github.io/music_generation.python/music_model/classical_music_model/model.json', 'classical')" class="genre-selection btn-large waves-effect waves-light orange">Classical</button>
+        <button id="irish" onclick="init('https://abcrnn.github.io/music_generation.python/music_model/irish_music_model/model.json', 'irish')"class="genre-selection btn-large waves-effect waves-light orange">Irish</button>   
+        <br>
+        <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+        <br />
+        <button id="musicButton" class="btn-large animated pulse infinite" style="display: none; background-color: #a1ca53"></button>
+        <br/><br/>
+        <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="section">
+      <div class="abcjs center">
+          <br />
+          <textarea name="abc" id="abc" cols="80" rows="11" style="color: black; background-color: white">
+          </textarea>
+          <hr />
+          <div id="midi"></div>
+          <div id="midi-download"></div>
+          <div id="warnings"></div>
+          <div id="score-canvas"></div>
+          <div id="selection"></div>
+      </div>
+      <div class="section center white-text">
 
-    <footer class="page-footer teal">
-        <div class="container">
-            <div class="row">
-                <div class="col l6 s12">
-                    <h5 class="white-text">Project Description</h5>
-                    <p class="grey-text text-lighten-4">Create an powerful music generation model that can be used to help artists</p>
-                </div>
-            </div>
-        </div>
-        <div class="footer-copyright">
-            <div class="container">
-                © 2019 Copyright Text
-                <a class="grey-text text-lighten-4 right" href="#!">Powered by abcRNN</a>
-            </div>
-        </div>
-    </footer>
-    <script src="js/jquery.min.js"></script>
-    <script src="js/materialize.min.js"></script>
-    <script src="js/app.js"></script>
-    <script src="js/music.js"></script>
-    <script type="text/javascript">
-        window.addEventListener("load", initEditor, false);
-        var model;
-        var obj = undefined;
-        var starting_seed = undefined;
-        window.onload = async function() {
-            //init();
-        }
-    </script>
-</body>
-
+        abcRnn uses deep learning to compose piano music of specific genre with <a href="http://abcnotation.com/" target="_blank"> <span class="link">abc notation </span></a>
+        <br/><br/>
+        Choose a model of your choice and generate music
+        <br/><br/>
+        Learn more about our project <a href="/about.html" target="_blank"> <span class="link">here</span> </a>
+        <br/><br/>
+        <h8 class="col s12 white-text">Disclaimer: It will take a while for the music to be generated</h8>
+      </div>
+    </div>
+    <br><br>
+  </div>
+  <!--  Scripts-->
+  <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script src="js/materialize.js"></script>
+  <script src="js/init.js"></script>
+  <script src="js/music.js"></script>
+  <script type="text/javascript">
+      window.addEventListener("load", initEditor, false);
+      var model;
+      var modelName;
+      var obj = undefined;
+      var starting_seed = undefined;
+  </script>
+  </body>
 </html>

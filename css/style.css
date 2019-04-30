@@ -6,7 +6,7 @@
 */
 
 body {
-    background-color: #112d13;
+    background-color: #11142d;
 }
 
 nav>.container {
@@ -209,7 +209,7 @@ ul.social i.icon {
 }
 
 .base-color {
-  background-color: #112d13;
+  background-color: #11142d;
 }
 
 .header {
@@ -226,7 +226,7 @@ textarea {
     width: 100% !important;
   }
 
-  .paper {
+  #score-canvas {
     overflow: scroll !important;
   }
 }
@@ -246,7 +246,7 @@ textarea {
 /*** Added by datduyng**/
 a {
   font-weight: bold;
-  color: #013ADF;
+  color: #a1ca53;
 }
 
 a:link {
