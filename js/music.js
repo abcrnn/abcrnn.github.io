@@ -55,6 +55,7 @@ async function generate(seq_length) {
         sample  = tf.multinomial(tf.log(predicted_probs).squeeze(), 1).dataSync()[0];//make log prob: see api
         var {values, indices} = tf.topk(predicted_probs.flatten(), 3)
         var char_note = obj.idx2char[sample]
+        if (char_note == undefined) continue;
         if (char_note === '\n' && char_note === prev) {
             //continue;
             var {values, indices} = tf.topk(predicted_probs.flatten(), 2)
