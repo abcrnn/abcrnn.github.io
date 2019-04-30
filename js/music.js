@@ -12,6 +12,8 @@ async function init(model_inp, id) {
     console.log('Start loading model') 
     model = await tf.loadModel(model_inp    )
     console.log('Finish loading model') 
+    console.log(model.summary());
+    
     $('.lds-ellipsis').css('display', 'none'); 
     $('#musicButton').css('display', 'inline-block');
 }
@@ -63,7 +65,7 @@ async function generate(seq_length) {
         }
         prev = char_note
     }
-    var str_seq = "T: abcRNN\nM: 4/4\nK:Cmin\n";
+    var str_seq = "X:1    %%Index\nT: abcRNN   %%Edit title here\nM: 4/4  %%Meter\nL: 2/8 %%Note length\nQ: 120 %%tempo\nK:Cmin %%Key Signature"
     for (var i = 0; i < sequence_index.length; i++) {
         str_seq += obj.idx2char[sequence_index[i]];
     }           
