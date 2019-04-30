@@ -1,6 +1,5 @@
 async function loadDict(dict) {
     await $.getJSON("https://abcrnn.github.io/music_generation.python/music_model/" + modelName + "_music_model/model_dictionary.json", function(json) {
-        console.log(json); // this will show the info it in firebug console
         obj = json;
     });
 }
@@ -24,12 +23,12 @@ $('#musicButton').on('click', async function(){
     await loadDict();
     console.log('Finish loading dictionary')
     console.log(modelName)
-    generate();
+    generate(300);
 });
 
-async function generate() {
-    var seq_length = 300;
-    await readFile(30);
+async function generate(seq_length) {
+    var window_size = 30;
+    await readFile(window_size);
     //var starting = "[A2F,2]dc [B2D2]A2 | [G2E,2]gf";
     //var starting = "[B,4d4] [c4A,4F,4] d4 | [dA,]^"
     var starting = starting_seed
@@ -44,43 +43,33 @@ async function generate() {
     var seq_len = starting.length
     var n_vocab = Object.keys(obj.idx2char).length;
     var prev = undefined
+    var sample;
     for (var i = 0; i < seq_length - seq_len; i++) {
         var batch = sequence_index.slice(Math.max(sequence_index.length - seq_len, 0))
         var predicted_probs = model.predictOnBatch(tf.tensor([batch]))
 
-        predicted_probs.print()
-        predicted_probs = tf.slice(predicted_probs, [0, 29, 0], [1, 1, model.internalOutputShapes[0][2]])
-        predicted_probs.print()
-        sample = tf.argMax(predicted_probs.flatten())
+        predicted_probs = tf.slice(predicted_probs, [0, window_size-1, 0], [1, 1, n_vocab]);//here 29: window size
+        // sample = tf.argMax(predicted_probs.flatten()).get()//if chosen max prob notes
+        sample  = tf.multinomial(tf.log(predicted_probs).squeeze(), 1).dataSync()[0];//make log prob: see api
         var {values, indices} = tf.topk(predicted_probs.flatten(), 3)
-        values.print()
-        indices.print()
-        //predicted_probs.flatten().max().print();
-        //predicted_probs.flatten().sum().print();
-        sample.print()
-        var char_note = obj.idx2char[sample.get()]
-        console.log(char_note)
+        var char_note = obj.idx2char[sample]
         if (char_note === '\n' && char_note === prev) {
             //continue;
             var {values, indices} = tf.topk(predicted_probs.flatten(), 2)
-            console.log(indices.flatten().dataSync()[1])
             char_note = obj.idx2char[indices.flatten().dataSync()[1]]
-            console.log(char_note)
             sequence_index.push(indices.flatten().dataSync()[1])
         } else {
-            sequence_index.push(sample.get())
+            sequence_index.push(sample)
         }
         prev = char_note
     }
-    var str_seq = "T: abcRNN\n";
+    var str_seq = "T: abcRNN\nM: 4/4\nK:Cmin\n";
     for (var i = 0; i < sequence_index.length; i++) {
         str_seq += obj.idx2char[sequence_index[i]];
     }           
     console.log(sequence_index)
     console.log(sequence_index.length)
     console.log(str_seq)
-//    $('.flow-text').css('display', 'none');
-//    $('.lds-ring').css('display', 'none');
     $('.lds-roller').css('display', 'none'); 
     document.getElementById("abc").value = str_seq;
     initEditor();
@@ -99,7 +88,7 @@ function selectionCallback(abcelem) {
 }
 
 function initEditor() {
-    new ABCJS.Editor("abc", { paper_id: "paper0",
+    new ABCJS.Editor("abc", { canvas_id: "score-canvas",
         generate_midi: true,
         midi_id:"midi",
         midi_download_id: "midi-download",
@@ -108,6 +97,9 @@ function initEditor() {
         abcjsParams: {
             generateDownload: true,
             //clickListener: selectionCallback
+        },
+        inlineControls: {
+            tempo: true,
         }
     });
 }

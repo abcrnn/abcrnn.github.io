@@ -23,9 +23,27 @@
               position: absolute;
           }
       }
+
+        #score-canvas {
+          border: 2px solid #d6b88c;
+          border-radius: 4px;
+        }
+        #score-canvas svg {
+          background-color: #F3ECe2;
+        }
+
+        textarea {
+          width: 60%;
+          font-size: 18px;
+          height: 300px;
+          overflow: hidden;
+          border-radius: 7px;
+          padding: 8px;
+          font-family: "Lucida Console", Monaco, monospace;
+        }
   </style>
 </head>
-<body>
+<body style="background-color:#04B486">
   <nav class="base-color" role="navigation">
 <!--    <div class="nav-wrapper container navbar-brand"><a id="logo-container" href="#" class="brand-logo"><img src="img/abcrnn_logo.png" style="height: 53px"/></a> -->
       <ul class="right hide-on-med-and-down">
@@ -64,24 +82,22 @@
     <div class="section">
       <div class="abcjs center">
           <br />
-          <textarea name="abc" id="abc" cols="80" rows="11" style="color: white">
+          <textarea name="abc" id="abc" cols="80" rows="11" style="color: black; background-color: white">
           </textarea>
           <hr />
           <div id="midi"></div>
           <div id="midi-download"></div>
           <div id="warnings"></div>
-          <div id="paper0" class="paper"></div>
-          <div id="paper1" class="paper"></div>
-          <div id="paper2" class="paper"></div>
-          <div id="paper3" class="paper"></div>
+          <div id="score-canvas"></div>
           <div id="selection"></div>
       </div>
       <div class="section center white-text">
-        abcRnn uses deep learning to compose piano music of specific genre with <a href="http://abcnotation.com/"> abc notation </a>
+
+        abcRnn uses deep learning to compose piano music of specific genre with <a href="http://abcnotation.com/"> <span class="link">abc notation </span></a>
         <br/><br/>
         Choose a model of your choice and generate music
         <br/><br/>
-        Learn more about our project <a href="/about1.html"> here </a>
+        Learn more about our project <a href="/about1.html"> <span class="link">here</span> </a>
         <br/><br/>
         <h8 class="col s12 white-text">Disclaimer: It will take a while for the music to be generated. Please be patient!</h8>
       </div>
